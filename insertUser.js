@@ -1,31 +1,46 @@
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 dotenv.config();
-
+const express = require("express");
+const app = express();
 const User = require("./model/userschema");
+const port = process.env.PORT || 3000;
+app.use(express.json());
 
 mongoose.connect(process.env.MONGODB_URI)
-.then(() => {
-  console.log("Connected to MongoDB");
-
-  const newUser = new User({
-    name: "Laksh",
-    email: "laksh@google.com",
-    age: 19
+  .then(() => {
+    console.log("Connected to MongoDB");
+  })
+  .catch((err) => {
+    console.log("Error:", err);
   });
 
-  return newUser.save();
-})
-.then((user) => {
-  console.log("User inserted:", user);
-  return User.find();
-})
-.then((users) => {
-  console.log("All users:", users);
-})
-.catch((err) => {
-  console.error("Error:", err);
-})
-.finally(() => {
-  mongoose.connection.close();
+app.get("/", (req, res) => {
+  res.send("Hello World!");
+});
+
+app.get("/users", (req, res) => {
+  User.find()
+    .then((users) => {
+      res.json(users);
+    })
+    .catch((err) => {
+      res.status(500).send("Error: " + err);
+    });
+});
+
+app.post("/users", (req, res) => {
+  const user = req.body;
+  console.log(user);
+  User.create(user)
+    .then((user) => {
+      res.json(user);
+    })
+    .catch((err) => {
+      res.status(500).send("Error: " + err);
+    });
+});
+
+app.listen(port, () => {
+  console.log(`Server is running on port http://localhost:${port}`);
 });
